@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PDFire — Every PDF Tool You Need</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red:     #FF2D2D;
+      --orange:  #FF6B00;
+      --yellow:  #FFD600;
+      --green:   #00D97E;
+      --blue:    #0066FF;
+      --purple:  #8B2BFF;
+      --dark:    #0D0D0D;
+      --mid:     #1A1A1A;
+      --card:    #161616;
+      --border:  #2A2A2A;
+      --text:    #F0F0F0;
+      --muted:   #888;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 40px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(13,13,13,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      letter-spacing: -0.5px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo-pdf { color: var(--text); }
+    .logo-fire {
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.7; }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      color: white !important;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-weight: 600 !important;
+      transition: opacity 0.2s !important;
+    }
+
+    .nav-cta:hover { opacity: 0.85; color: white !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 40px 80px;
+      position: relative;
+    }
+
+    /* Gradient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .orb-1 {
+      width: 600px; height: 600px;
+      background: var(--orange);
+      top: -100px; left: -200px;
+      animation: drift1 8s ease-in-out infinite;
+    }
+
+    .orb-2 {
+      width: 500px; height: 500px;
+      background: var(--blue);
+      bottom: -100px; right: -150px;
+      animation: drift2 10s ease-in-out infinite;
+    }
+
+    .orb-3 {
+      width: 400px; height: 400px;
+      background: var(--purple);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: drift3 12s ease-in-out infinite;
+    }
+
+    @keyframes drift1 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(40px, 60px); }
+    }
+
+    @keyframes drift2 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-50px, -40px); }
+    }
+
+    @keyframes drift3 {
+      0%, 100% { transform: translate(-50%, -50%); }
+      50% { transform: translate(-45%, -55%); }
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,107,0,0.1);
+      border: 1px solid rgba(255,107,0,0.3);
+      color: var(--orange);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-badge span { font-size: 1rem; }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(3rem, 8vw, 7rem);
+      line-height: 1.0;
+      letter-spacing: -3px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .hero h1 .line-1 { display: block; color: var(--text); }
+
+    .hero h1 .line-2 {
+      display: block;
+      background: linear-gradient(135deg, var(--orange) 0%, var(--red) 40%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      color: white;
+      padding: 16px 36px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 8px 32px rgba(255,107,0,0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(255,107,0,0.5);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+
+    .btn-secondary:hover { color: var(--text); }
+
+    .hero-stats {
+      display: flex;
+      gap: 48px;
+      margin-top: 80px;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2rem;
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── MARQUEE ── */
+    .marquee-section {
+      overflow: hidden;
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--mid);
+    }
+
+    .marquee-track {
+      display: flex;
+      gap: 0;
+      animation: marquee 20s linear infinite;
+      width: max-content;
+    }
+
+    .marquee-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 40px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .marquee-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── TOOLS SECTION ── */
+    .tools-section {
+      padding: 100px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 60px;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--orange);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+    }
+
+    .section-count {
+      font-family: 'Syne', sans-serif;
+      font-size: 5rem;
+      font-weight: 800;
+      color: var(--border);
+      line-height: 1;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    /* Tool Cards */
+    .tool-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .tool-card:nth-child(1) { animation-delay: 0.05s; }
+    .tool-card:nth-child(2) { animation-delay: 0.1s; }
+    .tool-card:nth-child(3) { animation-delay: 0.15s; }
+    .tool-card:nth-child(4) { animation-delay: 0.2s; }
+    .tool-card:nth-child(5) { animation-delay: 0.25s; }
+    .tool-card:nth-child(6) { animation-delay: 0.3s; }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+      border-radius: 20px;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .tool-card:hover::before { opacity: 1; }
+
+    /* Card colour variants */
+    .card-red::before   { background: linear-gradient(135deg, rgba(255,45,45,0.08), transparent); }
+    .card-red:hover     { border-color: rgba(255,45,45,0.4); box-shadow: 0 20px 60px rgba(255,45,45,0.15); }
+
+    .card-orange::before { background: linear-gradient(135deg, rgba(255,107,0,0.08), transparent); }
+    .card-orange:hover   { border-color: rgba(255,107,0,0.4); box-shadow: 0 20px 60px rgba(255,107,0,0.15); }
+
+    .card-yellow::before { background: linear-gradient(135deg, rgba(255,214,0,0.08), transparent); }
+    .card-yellow:hover   { border-color: rgba(255,214,0,0.4); box-shadow: 0 20px 60px rgba(255,214,0,0.15); }
+
+    .card-green::before  { background: linear-gradient(135deg, rgba(0,217,126,0.08), transparent); }
+    .card-green:hover    { border-color: rgba(0,217,126,0.4); box-shadow: 0 20px 60px rgba(0,217,126,0.15); }
+
+    .card-blue::before   { background: linear-gradient(135deg, rgba(0,102,255,0.08), transparent); }
+    .card-blue:hover     { border-color: rgba(0,102,255,0.4); box-shadow: 0 20px 60px rgba(0,102,255,0.15); }
+
+    .card-purple::before { background: linear-gradient(135deg, rgba(139,43,255,0.08), transparent); }
+    .card-purple:hover   { border-color: rgba(139,43,255,0.4); box-shadow: 0 20px 60px rgba(139,43,255,0.15); }
+
+    .tool-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .icon-red    { background: rgba(255,45,45,0.15);  }
+    .icon-orange { background: rgba(255,107,0,0.15); }
+    .icon-yellow { background: rgba(255,214,0,0.15); }
+    .icon-green  { background: rgba(0,217,126,0.15); }
+    .icon-blue   { background: rgba(0,102,255,0.15); }
+    .icon-purple { background: rgba(139,43,255,0.15); }
+
+    .tool-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tag-red    { background: rgba(255,45,45,0.15);  color: #FF6B6B; }
+    .tag-orange { background: rgba(255,107,0,0.15); color: var(--orange); }
+    .tag-yellow { background: rgba(255,214,0,0.15); color: var(--yellow); }
+    .tag-green  { background: rgba(0,217,126,0.15); color: var(--green); }
+    .tag-blue   { background: rgba(0,102,255,0.15); color: #4D94FF; }
+    .tag-purple { background: rgba(139,43,255,0.15); color: #B06FFF; }
+
+    .tool-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tool-desc {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tool-arrow {
+      position: absolute;
+      bottom: 28px;
+      right: 28px;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: transform 0.2s, background 0.2s;
+      z-index: 1;
+    }
+
+    .tool-card:hover .tool-arrow {
+      transform: translate(3px, -3px);
+    }
+
+    .card-red:hover .tool-arrow    { background: rgba(255,45,45,0.3); }
+    .card-orange:hover .tool-arrow { background: rgba(255,107,0,0.3); }
+    .card-yellow:hover .tool-arrow { background: rgba(255,214,0,0.3); }
+    .card-green:hover .tool-arrow  { background: rgba(0,217,126,0.3); }
+    .card-blue:hover .tool-arrow   { background: rgba(0,102,255,0.3); }
+    .card-purple:hover .tool-arrow { background: rgba(139,43,255,0.3); }
+
+    /* ── HOW IT WORKS ── */
+    .how-section {
+      padding: 100px 40px;
+      background: var(--mid);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .how-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    .step {
+      text-align: center;
+      padding: 40px 32px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      position: relative;
+    }
+
+    .step-number {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 4rem;
+      line-height: 1;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .step-icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .step h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .step p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* Connector lines */
+    .step:not(:last-child)::after {
+      content: '→';
+      position: absolute;
+      right: -28px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--border);
+      font-size: 1.5rem;
+      z-index: 2;
+    }
+
+    /* ── UPLOAD PAGE ── */
+    .upload-page {
+      display: none;
+      min-height: 100vh;
+      padding: 120px 40px 80px;
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .upload-page.active { display: block; }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: inherit;
+      margin-bottom: 40px;
+      transition: color 0.2s;
+      padding: 0;
+    }
+
+    .back-btn:hover { color: var(--text); }
+
+    .upload-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 48px;
+    }
+
+    .upload-icon-big {
+      width: 72px; height: 72px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .upload-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2.5rem;
+      letter-spacing: -1px;
+    }
+
+    .upload-header p {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 1rem;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 24px;
+      padding: 80px 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: var(--card);
+      position: relative;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--orange);
+      background: rgba(255,107,0,0.05);
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .drop-icon {
+      font-size: 3.5rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .drop-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+    }
+
+    .drop-sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+
+    .drop-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      color: white;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      pointer-events: none;
+    }
+
+    /* File list */
+    .file-list {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .file-item-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .file-item-info { flex: 1; min-width: 0; }
+
+    .file-item-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-item-size {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+
+    .file-remove {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .file-remove:hover {
+      color: var(--red);
+      background: rgba(255,45,45,0.1);
+    }
+
+    /* Process button */
+    .process-section {
+      margin-top: 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .process-btn {
+      flex: 1;
+      padding: 18px;
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 8px 32px rgba(255,107,0,0.3);
+    }
+
+    .process-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .process-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Progress */
+    .progress-wrap {
+      display: none;
+      margin-top: 32px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .progress-wrap.active { display: block; }
+
+    .progress-spinner {
+      width: 56px; height: 56px;
+      border: 3px solid var(--border);
+      border-top-color: var(--orange);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .progress-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .progress-sub { color: var(--muted); font-size: 0.9rem; }
+
+    .progress-bar-wrap {
+      height: 6px;
+      background: var(--border);
+      border-radius: 100px;
+      margin-top: 24px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--orange), var(--red));
+      border-radius: 100px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* Result */
+    .result-wrap {
+      display: none;
+      margin-top: 32px;
+      background: var(--card);
+      border: 1px solid rgba(0,217,126,0.3);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .result-wrap.active { display: block; }
+
+    .result-check {
+      width: 64px; height: 64px;
+      background: rgba(0,217,126,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin: 0 auto 20px;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .result-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+
+    .result-sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--green);
+      color: var(--dark);
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      text-decoration: none;
+    }
+
+    .download-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .process-again {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-left: 12px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .process-again:hover {
+      color: var(--text);
+      border-color: var(--muted);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--mid);
+      border-top: 1px solid var(--border);
+      padding: 60px 40px 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 60px;
+      margin-bottom: 48px;
+    }
+
+    .footer-brand p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      margin-top: 16px;
+      max-width: 280px;
+    }
+
+    .footer-col h4 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .footer-col a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .footer-col a:hover { color: var(--text); }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-copy {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .footer-copy span {
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+
+    .footer-badges {
+      display: flex;
+      gap: 12px;
+    }
+
+    .badge {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── HOMEPAGE wrapper ── */
+    #homepage { display: block; }
+    #homepage.hidden { display: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .tools-grid { grid-template-columns: repeat(2, 1fr); }
+      .how-steps  { grid-template-columns: 1fr; }
+      .step:not(:last-child)::after { display: none; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .hero-stats { gap: 24px; }
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .tools-grid { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr; }
+      .section-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .hero h1 { letter-spacing: -1px; }
+      .hero-actions { flex-direction: column; width: 100%; }
+      .btn-primary { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="logo" onclick="showHome()">
+      <span class="logo-pdf">PDF</span><span class="logo-fire">fire</span>
+      <span class="logo-dot"></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#tools">Tools</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#" class="nav-cta">Get Started →</a></li>
+    </ul>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════ HOMEPAGE -->
+  <div id="homepage">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+
+      <div class="hero-badge">
+        <span>🔥</span> The fastest PDF tools on the web
+      </div>
+
+      <h1>
+        <span class="line-1">Your PDFs.</span>
+        <span class="line-2">Supercharged.</span>
+      </h1>
+
+      <p>Merge, split, compress, rotate and convert PDF files in seconds. No installs. No sign up. Just results.</p>
+
+      <div class="hero-actions">
+        <a href="#tools" class="btn-primary">
+          Explore Tools
+          <span>↓</span>
+        </a>
+        <a href="#how" class="btn-secondary">
+          How it works →
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-number">6+</div>
+          <div class="stat-label">PDF Tools</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">Free to use</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">0</div>
+          <div class="stat-label">Install needed</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARQUEE -->
+    <div class="marquee-section">
+      <div class="marquee-track" id="marqueeTrack">
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--red)"></span>Merge PDF</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--orange)"></span>Split PDF</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--yellow)"></span>Compress PDF</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--green)"></span>Rotate PDF</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--blue)"></span>PDF to JPG</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--purple)"></span>JPG to PDF</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--red)"></span>Merge PDF</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--orange)"></span>Split PDF</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--yellow)"></span>Compress PDF</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--green)"></span>Rotate PDF</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--blue)"></span>PDF to JPG</div>
+        <div class="marquee-item"><span class="marquee-dot" style="background:var(--purple)"></span>JPG to PDF</div>
+      </div>
+    </div>
+
+    <!-- TOOLS -->
+    <section class="tools-section" id="tools">
+      <div class="section-header">
+        <div>
+          <div class="section-label">✦ PDF Tools</div>
+          <h2 class="section-title">Everything you need<br>for your PDFs</h2>
+        </div>
+        <div class="section-count">06</div>
+      </div>
+
+      <div class="tools-grid">
+
+        <a class="tool-card card-red" onclick="openTool('merge'); return false;" href="#">
+          <div class="tool-icon icon-red">📄</div>
+          <div class="tool-tag tag-red">Organize</div>
+          <div class="tool-name">Merge PDF</div>
+          <div class="tool-desc">Combine multiple PDF files into one perfectly ordered document in seconds.</div>
+          <div class="tool-arrow">↗</div>
+        </a>
+
+        <a class="tool-card card-orange" onclick="openTool('split'); return false;" href="#">
+          <div class="tool-icon icon-orange">✂️</div>
+          <div class="tool-tag tag-orange">Organize</div>
+          <div class="tool-name">Split PDF</div>
+          <div class="tool-desc">Separate a PDF into individual pages or extract specific page ranges.</div>
+          <div class="tool-arrow">↗</div>
+        </a>
+
+        <a class="tool-card card-yellow" onclick="openTool('compress'); return false;" href="#">
+          <div class="tool-icon icon-yellow">🗜️</div>
+          <div class="tool-tag tag-yellow">Optimize</div>
+          <div class="tool-name">Compress PDF</div>
+          <div class="tool-desc">Reduce file size dramatically while maintaining the best possible quality.</div>
+          <div class="tool-arrow">↗</div>
+        </a>
+
+        <a class="tool-card card-green" onclick="openTool('rotate'); return false;" href="#">
+          <div class="tool-icon icon-green">🔄</div>
+          <div class="tool-tag tag-green">Edit</div>
+          <div class="tool-name">Rotate PDF</div>
+          <div class="tool-desc">Rotate pages to the correct orientation. Apply to one page or the whole document.</div>
+          <div class="tool-arrow">↗</div>
+        </a>
+
+        <a class="tool-card card-blue" onclick="openTool('pdf2jpg'); return false;" href="#">
+          <div class="tool-icon icon-blue">🖼️</div>
+          <div class="tool-tag tag-blue">Convert</div>
+          <div class="tool-name">PDF to JPG</div>
+          <div class="tool-desc">Convert every PDF page into a high-quality JPG image file instantly.</div>
+          <div class="tool-arrow">↗</div>
+        </a>
+
+        <a class="tool-card card-purple" onclick="openTool('jpg2pdf'); return false;" href="#">
+          <div class="tool-icon icon-purple">📎</div>
+          <div class="tool-tag tag-purple">Convert</div>
+          <div class="tool-name">JPG to PDF</div>
+          <div class="tool-desc">Turn JPG images into a clean PDF document. Adjust orientation and margins.</div>
+          <div class="tool-arrow">↗</div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-section" id="how">
+      <div class="how-inner">
+        <div style="text-align:center; margin-bottom:16px">
+          <div class="section-label" style="display:inline-block">✦ Process</div>
+        </div>
+        <h2 class="section-title" style="text-align:center; margin-bottom:8px">Done in three steps</h2>
+        <p style="text-align:center; color:var(--muted); font-size:1rem; margin-bottom:0">No learning curve. No friction. Just results.</p>
+
+        <div class="how-steps">
+          <div class="step">
+            <div class="step-number">01</div>
+            <div class="step-icon">📤</div>
+            <h3>Upload your file</h3>
+            <p>Drag and drop your PDF or image file into the tool. We accept files up to 100MB.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">02</div>
+            <div class="step-icon">⚡</div>
+            <h3>We process it</h3>
+            <p>Our cloud infrastructure powered by AWS Lambda processes your file in seconds.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">03</div>
+            <div class="step-icon">📥</div>
+            <h3>Download result</h3>
+            <p>Your processed file is ready. Download it instantly. Files are deleted after 1 hour.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="#" class="logo" onclick="showHome()">
+              <span class="logo-pdf">PDF</span><span class="logo-fire">fire</span>
+              <span class="logo-dot"></span>
+            </a>
+            <p>The fastest, most reliable PDF tools on the web. Built on AWS Lambda for speed and scale.</p>
+          </div>
+          <div class="footer-col">
+            <h4>Tools</h4>
+            <ul>
+              <li><a href="#" onclick="openTool('merge'); return false;">Merge PDF</a></li>
+              <li><a href="#" onclick="openTool('split'); return false;">Split PDF</a></li>
+              <li><a href="#" onclick="openTool('compress'); return false;">Compress PDF</a></li>
+              <li><a href="#" onclick="openTool('rotate'); return false;">Rotate PDF</a></li>
+              <li><a href="#" onclick="openTool('pdf2jpg'); return false;">PDF to JPG</a></li>
+              <li><a href="#" onclick="openTool('jpg2pdf'); return false;">JPG to PDF</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Info</h4>
+            <ul>
+              <li><a href="#">About</a></li>
+              <li><a href="#">Security</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms</a></li>
+              <li><a href="#">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-copy">© 2026 <span>PDFire</span> — Built with AWS Lambda</div>
+          <div class="footer-badges">
+            <div class="badge">🔒 SSL Secured</div>
+            <div class="badge">⚡ AWS Powered</div>
+            <div class="badge">🆓 Free to use</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </div><!-- end homepage -->
+
+  <!-- ═══════════════════════════════════════════ TOOL PAGES -->
+
+  <!-- MERGE -->
+  <div class="upload-page" id="page-merge">
+    <button class="back-btn" onclick="showHome()">← Back to all tools</button>
+    <div class="upload-header">
+      <div class="upload-icon-big icon-red">📄</div>
+      <div>
+        <h1>Merge PDF</h1>
+        <p>Combine multiple PDFs into one document. Drag to reorder.</p>
+      </div>
+    </div>
+    <div class="drop-zone" id="dz-merge" ondragover="handleDragOver(event,'merge')" ondragleave="handleDragLeave(event,'merge')" ondrop="handleDrop(event,'merge')">
+      <input type="file" accept=".pdf" multiple onchange="handleFiles(this,'merge')">
+      <span class="drop-icon">📄</span>
+      <div class="drop-title">Drop PDF files here</div>
+      <div class="drop-sub">or click to browse — select multiple files</div>
+      <div class="drop-btn">📂 Choose Files</div>
+    </div>
+    <div class="file-list" id="fl-merge"></div>
+    <div class="process-section">
+      <button class="process-btn" id="pb-merge" onclick="processFiles('merge')" disabled>Merge PDFs →</button>
+    </div>
+    <div class="progress-wrap" id="prog-merge">
+      <div class="progress-spinner"></div>
+      <div class="progress-title">Merging your PDFs...</div>
+      <div class="progress-sub">Combining files in order. This takes just a moment.</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="bar-merge"></div></div>
+    </div>
+    <div class="result-wrap" id="res-merge">
+      <div class="result-check">✅</div>
+      <div class="result-title">PDFs merged successfully!</div>
+      <div class="result-sub">Your combined PDF is ready to download.</div>
+      <a href="#" class="download-btn" id="dl-merge">⬇ Download merged.pdf</a>
+      <button class="process-again" onclick="resetTool('merge')">↺ Merge more files</button>
+    </div>
+  </div>
+
+  <!-- SPLIT -->
+  <div class="upload-page" id="page-split">
+    <button class="back-btn" onclick="showHome()">← Back to all tools</button>
+    <div class="upload-header">
+      <div class="upload-icon-big icon-orange">✂️</div>
+      <div>
+        <h1>Split PDF</h1>
+        <p>Extract pages or split into individual PDF files.</p>
+      </div>
+    </div>
+    <div class="drop-zone" id="dz-split" ondragover="handleDragOver(event,'split')" ondragleave="handleDragLeave(event,'split')" ondrop="handleDrop(event,'split')">
+      <input type="file" accept=".pdf" onchange="handleFiles(this,'split')">
+      <span class="drop-icon">✂️</span>
+      <div class="drop-title">Drop a PDF file here</div>
+      <div class="drop-sub">or click to browse — one file at a time</div>
+      <div class="drop-btn">📂 Choose File</div>
+    </div>
+    <div class="file-list" id="fl-split"></div>
+    <div class="process-section">
+      <button class="process-btn" id="pb-split" onclick="processFiles('split')" disabled>Split PDF →</button>
+    </div>
+    <div class="progress-wrap" id="prog-split">
+      <div class="progress-spinner"></div>
+      <div class="progress-title">Splitting your PDF...</div>
+      <div class="progress-sub">Separating pages into individual files.</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="bar-split"></div></div>
+    </div>
+    <div class="result-wrap" id="res-split">
+      <div class="result-check">✅</div>
+      <div class="result-title">PDF split successfully!</div>
+      <div class="result-sub">Your split PDF files are ready as a ZIP archive.</div>
+      <a href="#" class="download-btn" id="dl-split">⬇ Download split-pages.zip</a>
+      <button class="process-again" onclick="resetTool('split')">↺ Split another file</button>
+    </div>
+  </div>
+
+  <!-- COMPRESS -->
+  <div class="upload-page" id="page-compress">
+    <button class="back-btn" onclick="showHome()">← Back to all tools</button>
+    <div class="upload-header">
+      <div class="upload-icon-big icon-yellow">🗜️</div>
+      <div>
+        <h1>Compress PDF</h1>
+        <p>Reduce PDF file size while keeping the best quality.</p>
+      </div>
+    </div>
+    <div class="drop-zone" id="dz-compress" ondragover="handleDragOver(event,'compress')" ondragleave="handleDragLeave(event,'compress')" ondrop="handleDrop(event,'compress')">
+      <input type="file" accept=".pdf" onchange="handleFiles(this,'compress')">
+      <span class="drop-icon">🗜️</span>
+      <div class="drop-title">Drop a PDF file here</div>
+      <div class="drop-sub">or click to browse — files up to 100MB</div>
+      <div class="drop-btn">📂 Choose File</div>
+    </div>
+    <div class="file-list" id="fl-compress"></div>
+    <div class="process-section">
+      <button class="process-btn" id="pb-compress" onclick="processFiles('compress')" disabled>Compress PDF →</button>
+    </div>
+    <div class="progress-wrap" id="prog-compress">
+      <div class="progress-spinner"></div>
+      <div class="progress-title">Compressing your PDF...</div>
+      <div class="progress-sub">Optimising images and removing redundant data.</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="bar-compress"></div></div>
+    </div>
+    <div class="result-wrap" id="res-compress">
+      <div class="result-check">✅</div>
+      <div class="result-title">PDF compressed successfully!</div>
+      <div class="result-sub" id="compress-savings">Your file has been optimised and is ready to download.</div>
+      <a href="#" class="download-btn" id="dl-compress">⬇ Download compressed.pdf</a>
+      <button class="process-again" onclick="resetTool('compress')">↺ Compress another file</button>
+    </div>
+  </div>
+
+  <!-- ROTATE -->
+  <div class="upload-page" id="page-rotate">
+    <button class="back-btn" onclick="showHome()">← Back to all tools</button>
+    <div class="upload-header">
+      <div class="upload-icon-big icon-green">🔄</div>
+      <div>
+        <h1>Rotate PDF</h1>
+        <p>Fix page orientation. Rotate all pages or specific ones.</p>
+      </div>
+    </div>
+
+    <!-- Rotation options -->
+    <div style="display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap;" id="rotate-opts">
+      <label style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 20px;cursor:pointer;transition:border-color 0.2s;">
+        <input type="radio" name="rotation" value="90" checked style="accent-color:var(--green)"> 90° Clockwise
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 20px;cursor:pointer;">
+        <input type="radio" name="rotation" value="-90" style="accent-color:var(--green)"> 90° Counter-clockwise
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 20px;cursor:pointer;">
+        <input type="radio" name="rotation" value="180" style="accent-color:var(--green)"> 180°
+      </label>
+    </div>
+
+    <div class="drop-zone" id="dz-rotate" ondragover="handleDragOver(event,'rotate')" ondragleave="handleDragLeave(event,'rotate')" ondrop="handleDrop(event,'rotate')">
+      <input type="file" accept=".pdf" onchange="handleFiles(this,'rotate')">
+      <span class="drop-icon">🔄</span>
+      <div class="drop-title">Drop a PDF file here</div>
+      <div class="drop-sub">or click to browse</div>
+      <div class="drop-btn">📂 Choose File</div>
+    </div>
+    <div class="file-list" id="fl-rotate"></div>
+    <div class="process-section">
+      <button class="process-btn" id="pb-rotate" onclick="processFiles('rotate')" disabled>Rotate PDF →</button>
+    </div>
+    <div class="progress-wrap" id="prog-rotate">
+      <div class="progress-spinner"></div>
+      <div class="progress-title">Rotating your PDF...</div>
+      <div class="progress-sub">Applying rotation to all pages.</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="bar-rotate"></div></div>
+    </div>
+    <div class="result-wrap" id="res-rotate">
+      <div class="result-check">✅</div>
+      <div class="result-title">PDF rotated successfully!</div>
+      <div class="result-sub">Your rotated PDF is ready to download.</div>
+      <a href="#" class="download-btn" id="dl-rotate">⬇ Download rotated.pdf</a>
+      <button class="process-again" onclick="resetTool('rotate')">↺ Rotate another file</button>
+    </div>
+  </div>
+
+  <!-- PDF TO JPG -->
+  <div class="upload-page" id="page-pdf2jpg">
+    <button class="back-btn" onclick="showHome()">← Back to all tools</button>
+    <div class="upload-header">
+      <div class="upload-icon-big icon-blue">🖼️</div>
+      <div>
+        <h1>PDF to JPG</h1>
+        <p>Convert every page of your PDF into a high-quality JPG image.</p>
+      </div>
+    </div>
+    <div class="drop-zone" id="dz-pdf2jpg" ondragover="handleDragOver(event,'pdf2jpg')" ondragleave="handleDragLeave(event,'pdf2jpg')" ondrop="handleDrop(event,'pdf2jpg')">
+      <input type="file" accept=".pdf" onchange="handleFiles(this,'pdf2jpg')">
+      <span class="drop-icon">🖼️</span>
+      <div class="drop-title">Drop a PDF file here</div>
+      <div class="drop-sub">or click to browse — each page becomes a JPG</div>
+      <div class="drop-btn">📂 Choose File</div>
+    </div>
+    <div class="file-list" id="fl-pdf2jpg"></div>
+    <div class="process-section">
+      <button class="process-btn" id="pb-pdf2jpg" onclick="processFiles('pdf2jpg')" disabled>Convert to JPG →</button>
+    </div>
+    <div class="progress-wrap" id="prog-pdf2jpg">
+      <div class="progress-spinner"></div>
+      <div class="progress-title">Converting to JPG...</div>
+      <div class="progress-sub">Rendering each page as a high-resolution image.</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="bar-pdf2jpg"></div></div>
+    </div>
+    <div class="result-wrap" id="res-pdf2jpg">
+      <div class="result-check">✅</div>
+      <div class="result-title">Converted successfully!</div>
+      <div class="result-sub">All pages have been converted to JPG images in a ZIP file.</div>
+      <a href="#" class="download-btn" id="dl-pdf2jpg">⬇ Download images.zip</a>
+      <button class="process-again" onclick="resetTool('pdf2jpg')">↺ Convert another file</button>
+    </div>
+  </div>
+
+  <!-- JPG TO PDF -->
+  <div class="upload-page" id="page-jpg2pdf">
+    <button class="back-btn" onclick="showHome()">← Back to all tools</button>
+    <div class="upload-header">
+      <div class="upload-icon-big icon-purple">📎</div>
+      <div>
+        <h1>JPG to PDF</h1>
+        <p>Turn one or more JPG images into a single PDF document.</p>
+      </div>
+    </div>
+    <div class="drop-zone" id="dz-jpg2pdf" ondragover="handleDragOver(event,'jpg2pdf')" ondragleave="handleDragLeave(event,'jpg2pdf')" ondrop="handleDrop(event,'jpg2pdf')">
+      <input type="file" accept=".jpg,.jpeg,.png" multiple onchange="handleFiles(this,'jpg2pdf')">
+      <span class="drop-icon">📎</span>
+      <div class="drop-title">Drop JPG images here</div>
+      <div class="drop-sub">or click to browse — select multiple images</div>
+      <div class="drop-btn">📂 Choose Images</div>
+    </div>
+    <div class="file-list" id="fl-jpg2pdf"></div>
+    <div class="process-section">
+      <button class="process-btn" id="pb-jpg2pdf" onclick="processFiles('jpg2pdf')" disabled>Convert to PDF →</button>
+    </div>
+    <div class="progress-wrap" id="prog-jpg2pdf">
+      <div class="progress-spinner"></div>
+      <div class="progress-title">Building your PDF...</div>
+      <div class="progress-sub">Placing images into pages and optimising layout.</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="bar-jpg2pdf"></div></div>
+    </div>
+    <div class="result-wrap" id="res-jpg2pdf">
+      <div class="result-check">✅</div>
+      <div class="result-title">PDF created successfully!</div>
+      <div class="result-sub">Your images have been combined into a single PDF.</div>
+      <a href="#" class="download-btn" id="dl-jpg2pdf">⬇ Download document.pdf</a>
+      <button class="process-again" onclick="resetTool('jpg2pdf')">↺ Create another PDF</button>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──
+    const fileStore = {};
+
+    // ── Navigation ──
+    function showHome() {
+      document.getElementById('homepage').classList.remove('hidden');
+      document.querySelectorAll('.upload-page').forEach(p => p.classList.remove('active'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openTool(tool) {
+      document.getElementById('homepage').classList.add('hidden');
+      document.querySelectorAll('.upload-page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + tool).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    // ── Drag & Drop ──
+    function handleDragOver(e, tool) {
+      e.preventDefault();
+      document.getElementById('dz-' + tool).classList.add('dragover');
+    }
+
+    function handleDragLeave(e, tool) {
+      document.getElementById('dz-' + tool).classList.remove('dragover');
+    }
+
+    function handleDrop(e, tool) {
+      e.preventDefault();
+      document.getElementById('dz-' + tool).classList.remove('dragover');
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length) addFiles(files, tool);
+    }
+
+    function handleFiles(input, tool) {
+      const files = Array.from(input.files);
+      if (files.length) addFiles(files, tool);
+    }
+
+    function addFiles(files, tool) {
+      if (!fileStore[tool]) fileStore[tool] = [];
+      files.forEach(f => fileStore[tool].push(f));
+      renderFileList(tool);
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function renderFileList(tool) {
+      const files = fileStore[tool] || [];
+      const list  = document.getElementById('fl-' + tool);
+      const btn   = document.getElementById('pb-' + tool);
+
+      list.innerHTML = files.map((f, i) => `
+        <div class="file-item">
+          <span class="file-item-icon">${f.type.includes('pdf') ? '📄' : '🖼️'}</span>
+          <div class="file-item-info">
+            <div class="file-item-name">${f.name}</div>
+            <div class="file-item-size">${formatSize(f.size)}</div>
+          </div>
+          <button class="file-remove" onclick="removeFile('${tool}',${i})">✕</button>
+        </div>
+      `).join('');
+
+      btn.disabled = files.length === 0;
+    }
+
+    function removeFile(tool, index) {
+      fileStore[tool].splice(index, 1);
+      renderFileList(tool);
+    }
+
+    // ── Process simulation ──
+    // In production this calls your AWS Lambda API endpoint
+    // For now it simulates the processing with a progress bar
+    function processFiles(tool) {
+      const files = fileStore[tool];
+      if (!files || files.length === 0) return;
+
+      // Hide process button, show progress
+      document.querySelector(`#page-${tool} .process-section`).style.display = 'none';
+      document.getElementById('fl-' + tool).style.display = 'none';
+      document.getElementById(`dz-${tool}`).style.display = 'none';
+      if (document.getElementById('rotate-opts')) {
+        document.getElementById('rotate-opts').style.display = 'none';
+      }
+
+      const prog = document.getElementById('prog-' + tool);
+      const bar  = document.getElementById('bar-' + tool);
+      prog.classList.add('active');
+
+      // Animate progress bar
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 18 + 5;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          bar.style.width = '100%';
+          // Show result after short delay
+          setTimeout(() => {
+            prog.classList.remove('active');
+            showResult(tool);
+          }, 600);
+        }
+        bar.style.width = progress + '%';
+      }, 300);
+    }
+
+    function showResult(tool) {
+      const res = document.getElementById('res-' + tool);
+      res.classList.add('active');
+
+      // Special message for compress
+      if (tool === 'compress' && fileStore[tool] && fileStore[tool][0]) {
+        const originalSize = fileStore[tool][0].size;
+        const savedPercent = Math.floor(Math.random() * 40 + 20);
+        const newSize = Math.floor(originalSize * (1 - savedPercent / 100));
+        document.getElementById('compress-savings').textContent =
+          `Reduced from ${formatSize(originalSize)} to ${formatSize(newSize)} — saved ${savedPercent}%`;
+      }
+    }
+
+    function resetTool(tool) {
+      fileStore[tool] = [];
+      renderFileList(tool);
+
+      document.querySelector(`#page-${tool} .process-section`).style.display = 'flex';
+      document.getElementById('fl-' + tool).style.display = 'flex';
+      document.getElementById(`dz-${tool}`).style.display = 'block';
+      document.getElementById('prog-' + tool).classList.remove('active');
+      document.getElementById('res-' + tool).classList.remove('active');
+      document.getElementById('bar-' + tool).style.width = '0%';
+
+      if (document.getElementById('rotate-opts')) {
+        document.getElementById('rotate-opts').style.display = 'flex';
+      }
+    }
+  </script>
+</body>
+</html>

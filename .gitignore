@@ -1,0 +1,17 @@
+# Node dependencies — never commit these
+# They're huge and get reinstalled with npm install
+node_modules/
+
+# Environment variables — never commit secrets
+.env
+*.env
+
+# AWS SAM build artifacts
+.aws-sam/
+samconfig.toml
+
+# Mac system files
+.DS_Store
+
+# Lambda deployment packages
+*.zip
