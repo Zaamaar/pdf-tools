@@ -229,30 +229,5 @@ function corsHeaders() {
     'Access-Control-Allow-Methods': 'POST, OPTIONS'
   };
 }
-```
-
-Save with `Cmd + S`.
-
----
-
-**What this function does end to end:**
-```
-Frontend sends:
-{ fileKeys: ['uploads/file1.pdf', 'uploads/file2.pdf'] }
-        │
-        ▼
-Lambda downloads file1.pdf from S3
-Lambda downloads file2.pdf from S3
-        │
-        ▼
-pdf-lib merges all pages into one PDF
-        │
-        ▼
-Lambda uploads merged.pdf to S3
-        │
-        ▼
-Lambda returns pre-signed URL:
-{ downloadUrl: 'https://s3.amazonaws.com/...' }
-        │
         ▼
 Frontend shows download button using that URL
