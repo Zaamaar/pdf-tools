@@ -229,3 +229,8 @@ function corsHeaders() {
     'Access-Control-Allow-Methods': 'POST, OPTIONS'
   };
 }
+<<<<<<< HEAD
+=======
+        ▼
+Frontend shows download button using that URL
+>>>>>>> 533e5eab436abbe58902579763201199f426c713
