@@ -1,0 +1,281 @@
+# ============================================
+# SAM TEMPLATE — PDFire Backend Infrastructure
+#
+# This file defines everything the backend needs:
+# - S3 bucket for file uploads and processed files
+# - Four Lambda functions (merge, split, compress, rotate)
+# - API Gateway to expose Lambda as HTTP endpoints
+# - IAM roles with least privilege permissions
+#
+# Deploy with: sam deploy --guided
+# ============================================
+
+AWSTemplateFormatVersion: '2010-09-09'
+
+# Transform tells CloudFormation this is a SAM template
+# SAM extends CloudFormation with simpler serverless syntax
+# AWS expands the SAM shortcuts into full CloudFormation resources
+Transform: AWS::Serverless-2016-10-31
+
+Description: PDFire — Serverless PDF processing backend
+
+# ============================================
+# GLOBALS
+# Settings that apply to ALL Lambda functions
+# so we don't repeat them on every function
+# ============================================
+Globals:
+  Function:
+    # Runtime — Node.js 18.x is the current LTS version
+    Runtime: nodejs18.x
+
+    # Timeout — how long Lambda waits before killing the function
+    # 30 seconds is enough for PDF processing
+    # Default is only 3 seconds which is too short for large files
+    Timeout: 30
+
+    # Memory — how much RAM each function gets
+    # More memory also means more CPU in Lambda
+    # 512MB is a good balance for PDF processing
+    MemorySize: 512
+
+    # Environment variables available to all functions
+    # !Ref PdfireBucket references the S3 bucket we define below
+    # AWS resolves this reference automatically at deploy time
+    Environment:
+      Variables:
+        BUCKET_NAME: !Ref PdfireBucket
+        NODE_ENV: production
+
+# ============================================
+# RESOURCES
+# Everything AWS needs to create
+# ============================================
+Resources:
+
+  # ------------------------------------------
+  # S3 BUCKET
+  # Stores uploaded files and processed results
+  # Separate from the website hosting bucket
+  # ------------------------------------------
+  PdfireBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # BucketName uses the AWS account ID to ensure uniqueness
+      # !Sub substitutes variables into strings
+      # AWS::AccountId is automatically available in all templates
+      BucketName: !Sub 'pdfire-uploads-${AWS::AccountId}'
+
+      # CORS configuration — allows the browser to upload
+      # files directly to S3 from the frontend
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3000
+
+      # Lifecycle rules — automatically delete files
+      # after 1 hour to save storage costs and protect privacy
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteProcessedFiles
+            Status: Enabled
+            # Files in the processed/ folder deleted after 1 day
+            Prefix: processed/
+            ExpirationInDays: 1
+          - Id: DeleteUploadedFiles
+            Status: Enabled
+            # Files in the uploads/ folder deleted after 1 day
+            Prefix: uploads/
+            ExpirationInDays: 1
+
+  # ------------------------------------------
+  # API GATEWAY
+  # The HTTP endpoint the frontend calls
+  # SAM creates this automatically with HttpApi
+  # ------------------------------------------
+  PdfireApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      # CORS settings for the API Gateway itself
+      # This allows browsers to call the API from the S3 website
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowHeaders:
+          - Content-Type
+          - X-Amz-Date
+          - Authorization
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+
+  # ------------------------------------------
+  # MERGE PDF LAMBDA FUNCTION
+  # ------------------------------------------
+  MergePdfFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Path to the function code
+      # SAM looks for index.js inside this folder
+      CodeUri: backend/functions/merge/
+      
+      # handler format: filename.exportedFunctionName
+      # index.handler means exports.handler in index.js
+      Handler: index.handler
+
+      # IAM policies for this function
+      # Least privilege — only what merge needs
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PdfireBucket
+        - S3WritePolicy:
+            BucketName: !Ref PdfireBucket
+
+      # API Gateway trigger
+      # Defines which HTTP method and path triggers this function
+      Events:
+        MergeApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PdfireApi
+            Path: /merge
+            Method: POST
+
+  # ------------------------------------------
+  # SPLIT PDF LAMBDA FUNCTION
+  # ------------------------------------------
+  SplitPdfFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/functions/split/
+      Handler: index.handler
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PdfireBucket
+        - S3WritePolicy:
+            BucketName: !Ref PdfireBucket
+      Events:
+        SplitApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PdfireApi
+            Path: /split
+            Method: POST
+
+  # ------------------------------------------
+  # COMPRESS PDF LAMBDA FUNCTION
+  # ------------------------------------------
+  CompressPdfFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/functions/compress/
+      Handler: index.handler
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PdfireBucket
+        - S3WritePolicy:
+            BucketName: !Ref PdfireBucket
+      Events:
+        CompressApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PdfireApi
+            Path: /compress
+            Method: POST
+
+  # ------------------------------------------
+  # ROTATE PDF LAMBDA FUNCTION
+  # ------------------------------------------
+  RotatePdfFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/functions/rotate/
+      Handler: index.handler
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PdfireBucket
+        - S3WritePolicy:
+            BucketName: !Ref PdfireBucket
+      Events:
+        RotateApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PdfireApi
+            Path: /rotate
+            Method: POST
+
+  # ------------------------------------------
+  # UPLOAD URL LAMBDA FUNCTION
+  #
+  # This is an extra function we need that wasn't
+  # in the original list. Here's why:
+  #
+  # The frontend can't upload files directly to
+  # Lambda — Lambda has a 6MB request size limit
+  # and PDFs can be much larger than that.
+  #
+  # Instead the frontend asks this function for
+  # a pre-signed UPLOAD URL, then uploads the
+  # file directly to S3 using that URL.
+  # Lambda never touches the file during upload.
+  #
+  # Flow:
+  # Browser → getUploadUrl Lambda → pre-signed S3 URL
+  # Browser → uploads file directly to S3
+  # Browser → calls merge/split/compress/rotate with the S3 key
+  # ------------------------------------------
+  GetUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/functions/getUploadUrl/
+      Handler: index.handler
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref PdfireBucket
+      Events:
+        GetUploadUrlApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PdfireApi
+            Path: /get-upload-url
+            Method: POST
+
+# ============================================
+# OUTPUTS
+# Values SAM prints after deployment
+# These are the URLs and names you need to
+# configure the frontend
+# ============================================
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${PdfireApi}.execute-api.${AWS::Region}.amazonaws.com'
+
+  BucketName:
+    Description: S3 bucket for file uploads
+    Value: !Ref PdfireBucket
+
+  MergeFunction:
+    Description: Merge PDF Lambda function ARN
+    Value: !GetAtt MergePdfFunction.Arn
+
+  SplitFunction:
+    Description: Split PDF Lambda function ARN
+    Value: !GetAtt SplitPdfFunction.Arn
+
+  CompressFunction:
+    Description: Compress PDF Lambda function ARN
+    Value: !GetAtt CompressPdfFunction.Arn
+
+  RotateFunction:
+    Description: Rotate PDF Lambda function ARN
+    Value: !GetAtt RotatePdfFunction.Arn
