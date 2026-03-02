@@ -1509,148 +1509,336 @@
     </div>
   </div>
 
-  <script>
-    // ── State ──
-    const fileStore = {};
+<script>
+  // ── Configuration ──
+  // Your real AWS API Gateway URL
+  const API_URL = 'https://2ffzcxqgnd.execute-api.us-east-1.amazonaws.com';
 
-    // ── Navigation ──
-    function showHome() {
-      document.getElementById('homepage').classList.remove('hidden');
-      document.querySelectorAll('.upload-page').forEach(p => p.classList.remove('active'));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+  // ── State ──
+  const fileStore = {};
 
-    function openTool(tool) {
-      document.getElementById('homepage').classList.add('hidden');
-      document.querySelectorAll('.upload-page').forEach(p => p.classList.remove('active'));
-      document.getElementById('page-' + tool).classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
+  // ── Navigation ──
+  function showHome() {
+    document.getElementById('homepage').classList.remove('hidden');
+    document.querySelectorAll('.upload-page').forEach(p => p.classList.remove('active'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
-    // ── Drag & Drop ──
-    function handleDragOver(e, tool) {
-      e.preventDefault();
-      document.getElementById('dz-' + tool).classList.add('dragover');
-    }
+  function openTool(tool) {
+    document.getElementById('homepage').classList.add('hidden');
+    document.querySelectorAll('.upload-page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + tool).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
 
-    function handleDragLeave(e, tool) {
-      document.getElementById('dz-' + tool).classList.remove('dragover');
-    }
+  // ── Drag & Drop ──
+  function handleDragOver(e, tool) {
+    e.preventDefault();
+    document.getElementById('dz-' + tool).classList.add('dragover');
+  }
 
-    function handleDrop(e, tool) {
-      e.preventDefault();
-      document.getElementById('dz-' + tool).classList.remove('dragover');
-      const files = Array.from(e.dataTransfer.files);
-      if (files.length) addFiles(files, tool);
-    }
+  function handleDragLeave(e, tool) {
+    document.getElementById('dz-' + tool).classList.remove('dragover');
+  }
 
-    function handleFiles(input, tool) {
-      const files = Array.from(input.files);
-      if (files.length) addFiles(files, tool);
-    }
+  function handleDrop(e, tool) {
+    e.preventDefault();
+    document.getElementById('dz-' + tool).classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length) addFiles(files, tool);
+  }
 
-    function addFiles(files, tool) {
-      if (!fileStore[tool]) fileStore[tool] = [];
-      files.forEach(f => fileStore[tool].push(f));
-      renderFileList(tool);
-    }
+  function handleFiles(input, tool) {
+    const files = Array.from(input.files);
+    if (files.length) addFiles(files, tool);
+  }
 
-    function formatSize(bytes) {
-      if (bytes < 1024) return bytes + ' B';
-      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-    }
+  function addFiles(files, tool) {
+    if (!fileStore[tool]) fileStore[tool] = [];
+    files.forEach(f => fileStore[tool].push(f));
+    renderFileList(tool);
+  }
 
-    function renderFileList(tool) {
-      const files = fileStore[tool] || [];
-      const list  = document.getElementById('fl-' + tool);
-      const btn   = document.getElementById('pb-' + tool);
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
 
-      list.innerHTML = files.map((f, i) => `
-        <div class="file-item">
-          <span class="file-item-icon">${f.type.includes('pdf') ? '📄' : '🖼️'}</span>
-          <div class="file-item-info">
-            <div class="file-item-name">${f.name}</div>
-            <div class="file-item-size">${formatSize(f.size)}</div>
-          </div>
-          <button class="file-remove" onclick="removeFile('${tool}',${i})">✕</button>
+  function renderFileList(tool) {
+    const files = fileStore[tool] || [];
+    const list  = document.getElementById('fl-' + tool);
+    const btn   = document.getElementById('pb-' + tool);
+
+    list.innerHTML = files.map((f, i) => `
+      <div class="file-item">
+        <span class="file-item-icon">${f.type.includes('pdf') ? '📄' : '🖼️'}</span>
+        <div class="file-item-info">
+          <div class="file-item-name">${f.name}</div>
+          <div class="file-item-size">${formatSize(f.size)}</div>
         </div>
-      `).join('');
+        <button class="file-remove" onclick="removeFile('${tool}',${i})">✕</button>
+      </div>
+    `).join('');
 
-      btn.disabled = files.length === 0;
-    }
+    btn.disabled = files.length === 0;
+  }
 
-    function removeFile(tool, index) {
-      fileStore[tool].splice(index, 1);
-      renderFileList(tool);
-    }
+  function removeFile(tool, index) {
+    fileStore[tool].splice(index, 1);
+    renderFileList(tool);
+  }
 
-    // ── Process simulation ──
-    // In production this calls your AWS Lambda API endpoint
-    // For now it simulates the processing with a progress bar
-    function processFiles(tool) {
-      const files = fileStore[tool];
-      if (!files || files.length === 0) return;
+  // ── Show progress bar ──
+  function showProgress(tool) {
+    document.querySelector('#page-' + tool + ' .process-section').style.display = 'none';
+    document.getElementById('fl-' + tool).style.display = 'none';
+    document.getElementById('dz-' + tool).style.display = 'none';
+    const rotateOpts = document.getElementById('rotate-opts');
+    if (rotateOpts) rotateOpts.style.display = 'none';
+    document.getElementById('prog-' + tool).classList.add('active');
+    animateProgressBar(tool);
+  }
 
-      // Hide process button, show progress
-      document.querySelector(`#page-${tool} .process-section`).style.display = 'none';
-      document.getElementById('fl-' + tool).style.display = 'none';
-      document.getElementById(`dz-${tool}`).style.display = 'none';
-      if (document.getElementById('rotate-opts')) {
-        document.getElementById('rotate-opts').style.display = 'none';
-      }
-
-      const prog = document.getElementById('prog-' + tool);
-      const bar  = document.getElementById('bar-' + tool);
-      prog.classList.add('active');
-
-      // Animate progress bar
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 18 + 5;
-        if (progress >= 100) {
-          progress = 100;
-          clearInterval(interval);
-          bar.style.width = '100%';
-          // Show result after short delay
-          setTimeout(() => {
-            prog.classList.remove('active');
-            showResult(tool);
-          }, 600);
-        }
+  // ── Animate progress bar while waiting for Lambda ──
+  function animateProgressBar(tool) {
+    const bar = document.getElementById('bar-' + tool);
+    let progress = 0;
+    const interval = setInterval(() => {
+      // Slow down as it approaches 90%
+      // We never reach 100% artificially
+      // The real completion triggers 100%
+      if (progress < 90) {
+        progress += Math.random() * 8 + 2;
+        if (progress > 90) progress = 90;
         bar.style.width = progress + '%';
-      }, 300);
-    }
-
-    function showResult(tool) {
-      const res = document.getElementById('res-' + tool);
-      res.classList.add('active');
-
-      // Special message for compress
-      if (tool === 'compress' && fileStore[tool] && fileStore[tool][0]) {
-        const originalSize = fileStore[tool][0].size;
-        const savedPercent = Math.floor(Math.random() * 40 + 20);
-        const newSize = Math.floor(originalSize * (1 - savedPercent / 100));
-        document.getElementById('compress-savings').textContent =
-          `Reduced from ${formatSize(originalSize)} to ${formatSize(newSize)} — saved ${savedPercent}%`;
       }
-    }
+    }, 400);
 
-    function resetTool(tool) {
-      fileStore[tool] = [];
-      renderFileList(tool);
+    // Store interval ID so we can clear it when done
+    bar.dataset.interval = interval;
+  }
 
-      document.querySelector(`#page-${tool} .process-section`).style.display = 'flex';
-      document.getElementById('fl-' + tool).style.display = 'flex';
-      document.getElementById(`dz-${tool}`).style.display = 'block';
+  // ── Complete progress bar and show result ──
+  function completeProgress(tool) {
+    const bar = document.getElementById('bar-' + tool);
+    clearInterval(bar.dataset.interval);
+    bar.style.width = '100%';
+    setTimeout(() => {
       document.getElementById('prog-' + tool).classList.remove('active');
-      document.getElementById('res-' + tool).classList.remove('active');
-      document.getElementById('bar-' + tool).style.width = '0%';
+      document.getElementById('res-' + tool).classList.add('active');
+    }, 500);
+  }
 
-      if (document.getElementById('rotate-opts')) {
-        document.getElementById('rotate-opts').style.display = 'flex';
-      }
+  // ── Show error message ──
+  function showError(tool, message) {
+    const bar = document.getElementById('bar-' + tool);
+    clearInterval(bar.dataset.interval);
+    document.getElementById('prog-' + tool).classList.remove('active');
+
+    // Reset the UI back to upload state
+    document.querySelector('#page-' + tool + ' .process-section').style.display = 'flex';
+    document.getElementById('fl-' + tool).style.display = 'flex';
+    document.getElementById('dz-' + tool).style.display = 'block';
+    const rotateOpts = document.getElementById('rotate-opts');
+    if (rotateOpts) rotateOpts.style.display = 'flex';
+
+    // Show error alert
+    alert('Error: ' + message + '\n\nPlease try again.');
+  }
+
+  // ── STEP 1: Get a pre-signed upload URL from Lambda ──
+  // Then upload the file directly to S3 using that URL
+  // Returns the S3 fileKey for use in processing
+  async function uploadFileToS3(file) {
+    // Step 1a — Ask Lambda for a pre-signed upload URL
+    const urlResponse = await fetch(API_URL + '/get-upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type || 'application/pdf'
+      })
+    });
+
+    if (!urlResponse.ok) {
+      throw new Error('Failed to get upload URL');
     }
-  </script>
+
+    const { uploadUrl, fileKey } = await urlResponse.json();
+
+    // Step 1b — Upload the file directly to S3
+    // using the pre-signed URL Lambda gave us
+    // Notice: no Authorization header needed here
+    // The pre-signed URL contains all the auth info
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type || 'application/pdf' },
+      body: file
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error('Failed to upload file to S3');
+    }
+
+    // Return the S3 key so the processing function
+    // knows which file to work with
+    return fileKey;
+  }
+
+  // ── STEP 2: Call the processing Lambda ──
+  // Sends the S3 file key to the appropriate endpoint
+  // Returns the response from Lambda
+  async function callProcessingApi(endpoint, payload) {
+    const response = await fetch(API_URL + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Processing failed');
+    }
+
+    return data;
+  }
+
+  // ── MAIN PROCESS FUNCTION ──
+  // Called when user clicks the process button
+  // Handles the full flow for each tool
+  async function processFiles(tool) {
+    const files = fileStore[tool];
+    if (!files || files.length === 0) return;
+
+    // Show progress bar immediately so user
+    // knows something is happening
+    showProgress(tool);
+
+    try {
+
+      if (tool === 'merge') {
+        // Upload all files to S3 and collect their keys
+        const fileKeys = [];
+        for (const file of files) {
+          const fileKey = await uploadFileToS3(file);
+          fileKeys.push(fileKey);
+        }
+
+        // Call merge Lambda with all file keys
+        const result = await callProcessingApi('/merge', { fileKeys });
+
+        // Set the real download URL on the download button
+        document.getElementById('dl-merge').href = result.downloadUrl;
+        document.getElementById('dl-merge').download = 'merged.pdf';
+        completeProgress('merge');
+      }
+
+      else if (tool === 'split') {
+        const fileKey = await uploadFileToS3(files[0]);
+        const result = await callProcessingApi('/split', { fileKey });
+
+        // Split returns multiple pages
+        // Build download links for each page
+        const downloadBtn = document.getElementById('dl-split');
+        downloadBtn.href = result.pages[0].downloadUrl;
+        downloadBtn.download = 'page-1.pdf';
+        downloadBtn.textContent = result.pageCount > 1
+          ? '⬇ Download Page 1 of ' + result.pageCount
+          : '⬇ Download split.pdf';
+
+        // If more than one page add extra download links
+        if (result.pageCount > 1) {
+          const resWrap = document.getElementById('res-split');
+          const existingLinks = resWrap.querySelectorAll('.extra-page-link');
+          existingLinks.forEach(l => l.remove());
+
+          result.pages.slice(1).forEach(page => {
+            const link = document.createElement('a');
+            link.href = page.downloadUrl;
+            link.download = 'page-' + page.pageNumber + '.pdf';
+            link.className = 'download-btn extra-page-link';
+            link.style.marginTop = '10px';
+            link.textContent = '⬇ Download Page ' + page.pageNumber;
+            downloadBtn.parentNode.insertBefore(link, downloadBtn.nextSibling);
+          });
+        }
+
+        completeProgress('split');
+      }
+
+      else if (tool === 'compress') {
+        const fileKey = await uploadFileToS3(files[0]);
+        const result = await callProcessingApi('/compress', { fileKey });
+
+        document.getElementById('dl-compress').href = result.downloadUrl;
+        document.getElementById('dl-compress').download = 'compressed.pdf';
+
+        // Show real compression savings
+        if (result.savedPercent > 0) {
+          document.getElementById('compress-savings').textContent =
+            'Reduced from ' + result.originalSize +
+            ' to ' + result.compressedSize +
+            ' — saved ' + result.savedPercent + '%';
+        } else {
+          document.getElementById('compress-savings').textContent =
+            'File already well optimised. Size: ' + result.compressedSize;
+        }
+
+        completeProgress('compress');
+      }
+
+      else if (tool === 'rotate') {
+        const fileKey = await uploadFileToS3(files[0]);
+
+        // Get the selected rotation angle from the radio buttons
+        const selectedRotation = document.querySelector('input[name="rotation"]:checked');
+        const rotation = selectedRotation ? selectedRotation.value : '90';
+
+        const result = await callProcessingApi('/rotate', { fileKey, rotation });
+
+        document.getElementById('dl-rotate').href = result.downloadUrl;
+        document.getElementById('dl-rotate').download = 'rotated.pdf';
+        completeProgress('rotate');
+      }
+
+      else if (tool === 'pdf2jpg') {
+        // Phase 2 — not yet implemented
+        // Show coming soon message
+        showError('pdf2jpg', 'PDF to JPG is coming soon in Phase 2!');
+      }
+
+      else if (tool === 'jpg2pdf') {
+        // Phase 2 — not yet implemented
+        showError('jpg2pdf', 'JPG to PDF is coming soon in Phase 2!');
+      }
+
+    } catch (error) {
+      console.error('Processing error:', error);
+      showError(tool, error.message);
+    }
+  }
+
+  // ── Reset tool back to upload state ──
+  function resetTool(tool) {
+    fileStore[tool] = [];
+    renderFileList(tool);
+
+    document.querySelector('#page-' + tool + ' .process-section').style.display = 'flex';
+    document.getElementById('fl-' + tool).style.display = 'flex';
+    document.getElementById('dz-' + tool).style.display = 'block';
+    document.getElementById('prog-' + tool).classList.remove('active');
+    document.getElementById('res-' + tool).classList.remove('active');
+    document.getElementById('bar-' + tool).style.width = '0%';
+
+    const rotateOpts = document.getElementById('rotate-opts');
+    if (rotateOpts) rotateOpts.style.display = 'flex';
+
+    // Remove any extra page download links from split
+    const extraLinks = document.querySelectorAll('.extra-page-link');
+    extraLinks.forEach(l => l.remove());
+  }
+</script>
 </body>
 </html>
