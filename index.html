@@ -1804,15 +1804,31 @@
       }
 
       else if (tool === 'pdf2jpg') {
-        // Phase 2 — not yet implemented
-        // Show coming soon message
-        showError('pdf2jpg', 'PDF to JPG is coming soon in Phase 2!');
-      }
+  const fileKey = await uploadFileToS3(files[0]);
+  const result = await callProcessingApi('/pdf2jpg', { fileKey });
 
-      else if (tool === 'jpg2pdf') {
-        // Phase 2 — not yet implemented
-        showError('jpg2pdf', 'JPG to PDF is coming soon in Phase 2!');
-      }
+  const downloadBtn = document.getElementById('dl-pdf2jpg');
+  downloadBtn.href = result.downloadUrl;
+  downloadBtn.download = result.fileName || 'images.zip';
+  downloadBtn.textContent = result.pageCount === 1
+    ? '⬇ Download page.jpg'
+    : '⬇ Download images.zip (' + result.pageCount + ' pages)';
+
+  completeProgress('pdf2jpg');
+}
+
+else if (tool === 'jpg2pdf') {
+  const fileKeys = [];
+  for (const file of files) {
+    const fileKey = await uploadFileToS3(file);
+    fileKeys.push(fileKey);
+  }
+  const result = await callProcessingApi('/jpg2pdf', { fileKeys });
+
+  document.getElementById('dl-jpg2pdf').href = result.downloadUrl;
+  document.getElementById('dl-jpg2pdf').download = 'document.pdf';
+  completeProgress('jpg2pdf');
+}
 
     } catch (error) {
       console.error('Processing error:', error);
