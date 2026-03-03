@@ -1823,6 +1823,7 @@ else if (tool === 'jpg2pdf') {
     const fileKey = await uploadFileToS3(file);
     fileKeys.push(fileKey);
   }
+
   const result = await callProcessingApi('/jpg2pdf', { fileKeys });
 
   document.getElementById('dl-jpg2pdf').href = result.downloadUrl;
