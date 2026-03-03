@@ -163,8 +163,66 @@
     .badge { background: var(--card); border: 1px solid var(--border); padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
     #homepage { display: block; }
     #homepage.hidden { display: none; }
-    @media (max-width: 900px) { .tools-grid { grid-template-columns: repeat(2,1fr); } .how-steps { grid-template-columns: 1fr; } .step:not(:last-child)::after { display: none; } .footer-top { grid-template-columns: 1fr 1fr; } .hero-stats { gap: 24px; } nav { padding: 0 20px; } .nav-links { display: none; } }
-    @media (max-width: 600px) { .tools-grid { grid-template-columns: 1fr; } .footer-top { grid-template-columns: 1fr; } .section-header { flex-direction: column; align-items: flex-start; gap: 12px; } .hero h1 { letter-spacing: -1px; } .hero-actions { flex-direction: column; width: 100%; } .btn-primary { justify-content: center; } }
+    @media (max-width: 900px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 100px 24px 60px; }
+      .hero-stats { gap: 24px; }
+      .tools-section { padding: 60px 24px; }
+      .tools-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .how-section { padding: 60px 24px; }
+      .how-steps { grid-template-columns: 1fr; gap: 20px; }
+      .step:not(:last-child)::after { display: none; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 40px; }
+      .upload-page { padding: 100px 24px 60px; }
+      .drop-zone { padding: 60px 24px; }
+      .process-section { flex-direction: column; }
+      .process-btn { width: 100%; }
+      .download-btn { width: 100%; justify-content: center; }
+      .process-again { width: 100%; justify-content: center; margin-left: 0; margin-top: 12px; }
+    }
+    @media (max-width: 600px) {
+      nav { padding: 0 16px; height: 60px; }
+      .logo { font-size: 1.2rem; }
+      .hero { padding: 90px 16px 50px; }
+      .hero h1 { letter-spacing: -1px; margin-bottom: 16px; }
+      .hero p { font-size: 1rem; margin-bottom: 32px; }
+      .hero-actions { flex-direction: column; width: 100%; gap: 12px; }
+      .btn-primary { justify-content: center; width: 100%; padding: 14px 24px; }
+      .hero-stats { gap: 16px; flex-wrap: wrap; justify-content: center; }
+      .stat-number { font-size: 1.5rem; }
+      .tools-section { padding: 48px 16px; }
+      .section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .section-count { font-size: 3rem; }
+      .section-title { font-size: 1.8rem; }
+      .tools-grid { grid-template-columns: 1fr; gap: 12px; }
+      .tool-card { padding: 24px; }
+      .how-section { padding: 48px 16px; }
+      .step { padding: 28px 20px; }
+      .step-number { font-size: 3rem; }
+      footer { padding: 40px 16px 28px; }
+      .footer-top { grid-template-columns: 1fr; gap: 32px; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+      .footer-badges { flex-wrap: wrap; justify-content: center; }
+      .upload-page { padding: 80px 16px 48px; }
+      .upload-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .upload-header h1 { font-size: 1.8rem; }
+      .upload-icon-big { width: 56px; height: 56px; font-size: 1.5rem; }
+      .drop-zone { padding: 40px 16px; }
+      .drop-icon { font-size: 2.5rem; }
+      .drop-title { font-size: 1.1rem; }
+      .result-wrap { padding: 24px 16px; }
+      .download-btn { width: 100%; justify-content: center; font-size: 0.9rem; padding: 12px 20px; }
+      .process-again { width: 100%; justify-content: center; margin-left: 0; margin-top: 12px; }
+    }
+    @media (max-width: 380px) {
+      .hero h1 { font-size: 2.4rem; }
+      .hero-stats { gap: 12px; }
+      .stat-number { font-size: 1.3rem; }
+      .tool-card { padding: 20px; }
+      .tool-name { font-size: 1.1rem; }
+      .badge { font-size: 0.7rem; padding: 4px 10px; }
+    }
   </style>
 </head>
 <body>
