@@ -249,7 +249,7 @@
       <a href="#how" class="btn-secondary">How it works →</a>
     </div>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-number">6+</div><div class="stat-label">PDF Tools</div></div>
+      <div class="stat"><div class="stat-number">8+</div><div class="stat-label">PDF Tools</div></div>
       <div class="stat"><div class="stat-number">100%</div><div class="stat-label">Free to use</div></div>
       <div class="stat"><div class="stat-number">0</div><div class="stat-label">Install needed</div></div>
     </div>
@@ -263,19 +263,23 @@
       <div class="marquee-item"><span class="marquee-dot" style="background:var(--green)"></span>Rotate PDF</div>
       <div class="marquee-item"><span class="marquee-dot" style="background:var(--blue)"></span>PDF to JPG</div>
       <div class="marquee-item"><span class="marquee-dot" style="background:var(--purple)"></span>JPG to PDF</div>
+      <div class="marquee-item"><span class="marquee-dot" style="background:var(--green)"></span>PDF to Word</div>
+      <div class="marquee-item"><span class="marquee-dot" style="background:var(--blue)"></span>Word to PDF</div>
       <div class="marquee-item"><span class="marquee-dot" style="background:var(--red)"></span>Merge PDF</div>
       <div class="marquee-item"><span class="marquee-dot" style="background:var(--orange)"></span>Split PDF</div>
       <div class="marquee-item"><span class="marquee-dot" style="background:var(--yellow)"></span>Compress PDF</div>
       <div class="marquee-item"><span class="marquee-dot" style="background:var(--green)"></span>Rotate PDF</div>
       <div class="marquee-item"><span class="marquee-dot" style="background:var(--blue)"></span>PDF to JPG</div>
       <div class="marquee-item"><span class="marquee-dot" style="background:var(--purple)"></span>JPG to PDF</div>
+      <div class="marquee-item"><span class="marquee-dot" style="background:var(--green)"></span>PDF to Word</div>
+      <div class="marquee-item"><span class="marquee-dot" style="background:var(--blue)"></span>Word to PDF</div>
     </div>
   </div>
 
   <section class="tools-section" id="tools">
     <div class="section-header">
       <div><div class="section-label">✦ PDF Tools</div><h2 class="section-title">Everything you need<br>for your PDFs</h2></div>
-      <div class="section-count">06</div>
+      <div class="section-count">08</div>
     </div>
     <div class="tools-grid">
       <a class="tool-card card-red" onclick="openTool('merge'); return false;" href="#"><div class="tool-icon icon-red">📄</div><div class="tool-tag tag-red">Organize</div><div class="tool-name">Merge PDF</div><div class="tool-desc">Combine multiple PDF files into one perfectly ordered document in seconds.</div><div class="tool-arrow">↗</div></a>
@@ -284,6 +288,8 @@
       <a class="tool-card card-green" onclick="openTool('rotate'); return false;" href="#"><div class="tool-icon icon-green">🔄</div><div class="tool-tag tag-green">Edit</div><div class="tool-name">Rotate PDF</div><div class="tool-desc">Rotate pages to the correct orientation. Apply to one page or the whole document.</div><div class="tool-arrow">↗</div></a>
       <a class="tool-card card-blue" onclick="openTool('pdf2jpg'); return false;" href="#"><div class="tool-icon icon-blue">🖼️</div><div class="tool-tag tag-blue">Convert</div><div class="tool-name">PDF to JPG</div><div class="tool-desc">Convert every PDF page into a high-quality JPG image file instantly.</div><div class="tool-arrow">↗</div></a>
       <a class="tool-card card-purple" onclick="openTool('jpg2pdf'); return false;" href="#"><div class="tool-icon icon-purple">📎</div><div class="tool-tag tag-purple">Convert</div><div class="tool-name">JPG to PDF</div><div class="tool-desc">Turn JPG images into a clean PDF document. Adjust orientation and margins.</div><div class="tool-arrow">↗</div></a>
+      <a class="tool-card card-green" onclick="openTool('pdf2word'); return false;" href="#"><div class="tool-icon icon-green">📝</div><div class="tool-tag tag-green">Convert</div><div class="tool-name">PDF to Word</div><div class="tool-desc">Extract text and formatting from any PDF and convert it into an editable Word document.</div><div class="tool-arrow">↗</div></a>
+      <a class="tool-card card-orange" onclick="openTool('word2pdf'); return false;" href="#"><div class="tool-icon icon-orange">📋</div><div class="tool-tag tag-orange">Convert</div><div class="tool-name">Word to PDF</div><div class="tool-desc">Convert your Word documents into a polished, shareable PDF file instantly.</div><div class="tool-arrow">↗</div></a>
     </div>
   </section>
 
@@ -316,6 +322,8 @@
             <li><a href="#" onclick="openTool('rotate');return false;">Rotate PDF</a></li>
             <li><a href="#" onclick="openTool('pdf2jpg');return false;">PDF to JPG</a></li>
             <li><a href="#" onclick="openTool('jpg2pdf');return false;">JPG to PDF</a></li>
+            <li><a href="#" onclick="openTool('pdf2word');return false;">PDF to Word</a></li>
+            <li><a href="#" onclick="openTool('word2pdf');return false;">Word to PDF</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -420,6 +428,34 @@
   <div class="result-wrap" id="res-jpg2pdf"><div class="result-check">✅</div><div class="result-title">PDF created successfully!</div><div class="result-sub">Your images have been combined into a single PDF.</div><a href="#" class="download-btn" id="dl-jpg2pdf">⬇ Download document.pdf</a><button class="process-again" onclick="resetTool('jpg2pdf')">↺ Create another PDF</button></div>
 </div>
 
+<!-- PDF TO WORD -->
+<div class="upload-page" id="page-pdf2word">
+  <button class="back-btn" onclick="showHome()">← Back to all tools</button>
+  <div class="upload-header"><div class="upload-icon-big icon-green">📝</div><div><h1>PDF to Word</h1><p>Convert your PDF into an editable Word document.</p></div></div>
+  <div class="drop-zone" id="dz-pdf2word" ondragover="handleDragOver(event,'pdf2word')" ondragleave="handleDragLeave(event,'pdf2word')" ondrop="handleDrop(event,'pdf2word')">
+    <input type="file" accept=".pdf" onchange="handleFiles(this,'pdf2word')">
+    <span class="drop-icon">📝</span><div class="drop-title">Drop a PDF file here</div><div class="drop-sub">or click to browse — converts text and basic formatting</div><div class="drop-btn">📂 Choose File</div>
+  </div>
+  <div class="file-list" id="fl-pdf2word"></div>
+  <div class="process-section"><button class="process-btn" id="pb-pdf2word" onclick="processFiles('pdf2word')" disabled>Convert to Word →</button></div>
+  <div class="progress-wrap" id="prog-pdf2word"><div class="progress-spinner"></div><div class="progress-title">Converting to Word...</div><div class="progress-sub">Extracting text and formatting from your PDF.</div><div class="progress-bar-wrap"><div class="progress-bar" id="bar-pdf2word"></div></div></div>
+  <div class="result-wrap" id="res-pdf2word"><div class="result-check">✅</div><div class="result-title">Converted to Word successfully!</div><div class="result-sub">Your editable Word document is ready to download.</div><a href="#" class="download-btn" id="dl-pdf2word">⬇ Download document.docx</a><button class="process-again" onclick="resetTool('pdf2word')">↺ Convert another file</button></div>
+</div>
+
+<!-- WORD TO PDF -->
+<div class="upload-page" id="page-word2pdf">
+  <button class="back-btn" onclick="showHome()">← Back to all tools</button>
+  <div class="upload-header"><div class="upload-icon-big icon-orange">📋</div><div><h1>Word to PDF</h1><p>Convert your Word document into a polished PDF file.</p></div></div>
+  <div class="drop-zone" id="dz-word2pdf" ondragover="handleDragOver(event,'word2pdf')" ondragleave="handleDragLeave(event,'word2pdf')" ondrop="handleDrop(event,'word2pdf')">
+    <input type="file" accept=".doc,.docx" onchange="handleFiles(this,'word2pdf')">
+    <span class="drop-icon">📋</span><div class="drop-title">Drop a Word file here</div><div class="drop-sub">or click to browse — supports .doc and .docx</div><div class="drop-btn">📂 Choose File</div>
+  </div>
+  <div class="file-list" id="fl-word2pdf"></div>
+  <div class="process-section"><button class="process-btn" id="pb-word2pdf" onclick="processFiles('word2pdf')" disabled>Convert to PDF →</button></div>
+  <div class="progress-wrap" id="prog-word2pdf"><div class="progress-spinner"></div><div class="progress-title">Converting to PDF...</div><div class="progress-sub">Building your PDF from the Word document.</div><div class="progress-bar-wrap"><div class="progress-bar" id="bar-word2pdf"></div></div></div>
+  <div class="result-wrap" id="res-word2pdf"><div class="result-check">✅</div><div class="result-title">Converted to PDF successfully!</div><div class="result-sub">Your PDF is ready to download.</div><a href="#" class="download-btn" id="dl-word2pdf">⬇ Download document.pdf</a><button class="process-again" onclick="resetTool('word2pdf')">↺ Convert another file</button></div>
+</div>
+
 <script>
   const API_URL = 'https://2ffzcxqgnd.execute-api.us-east-1.amazonaws.com';
   const fileStore = {};
@@ -460,7 +496,7 @@
     const btn = document.getElementById('pb-' + tool);
     list.innerHTML = files.map((f, i) => `
       <div class="file-item">
-        <span class="file-item-icon">${f.name.toLowerCase().endsWith('.pdf') ? '📄' : '🖼️'}</span>
+        <span class="file-item-icon">${f.name.toLowerCase().endsWith('.pdf') ? '📄' : f.name.toLowerCase().match(/\.(doc|docx)$/) ? '📝' : '🖼️'}</span>
         <div class="file-item-info">
           <div class="file-item-name">${f.name}</div>
           <div class="file-item-size">${formatSize(f.size)}</div>
@@ -528,7 +564,7 @@
   function getMimeType(file) {
     if (file.type && file.type !== 'application/octet-stream') return file.type;
     const ext = file.name.split('.').pop().toLowerCase();
-    const map = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp' };
+    const map = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
     return map[ext] || 'application/octet-stream';
   }
 
@@ -625,6 +661,20 @@
         document.getElementById('dl-jpg2pdf').href = result.downloadUrl;
         document.getElementById('dl-jpg2pdf').download = 'document.pdf';
         completeProgress('jpg2pdf');
+      }
+      else if (tool === 'pdf2word') {
+        const fileKey = await uploadFileToS3(files[0]);
+        const result = await callProcessingApi('/pdf2word', { fileKey });
+        document.getElementById('dl-pdf2word').href = result.downloadUrl;
+        document.getElementById('dl-pdf2word').download = 'document.docx';
+        completeProgress('pdf2word');
+      }
+      else if (tool === 'word2pdf') {
+        const fileKey = await uploadFileToS3(files[0]);
+        const result = await callProcessingApi('/word2pdf', { fileKey });
+        document.getElementById('dl-word2pdf').href = result.downloadUrl;
+        document.getElementById('dl-word2pdf').download = 'document.pdf';
+        completeProgress('word2pdf');
       }
     } catch (error) {
       console.error('Processing error:', error);
