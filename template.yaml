@@ -212,6 +212,47 @@ Resources:
             ApiId: !Ref PdfireApi
             Path: /rotate
             Method: POST
+            
+
+            # JPG TO PDF LAMBDA FUNCTION
+  Jpg2PdfFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/functions/jpg2pdf/
+      Handler: index.handler
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PdfireBucket
+        - S3WritePolicy:
+            BucketName: !Ref PdfireBucket
+      Events:
+        Jpg2PdfApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PdfireApi
+            Path: /jpg2pdf
+            Method: POST
+
+  # PDF TO JPG LAMBDA FUNCTION
+  Pdf2JpgFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/functions/pdf2jpg/
+      Handler: index.handler
+      Timeout: 60
+      MemorySize: 1024
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PdfireBucket
+        - S3WritePolicy:
+            BucketName: !Ref PdfireBucket
+      Events:
+        Pdf2JpgApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PdfireApi
+            Path: /pdf2jpg
+            Method: POST
 
   # ------------------------------------------
   # UPLOAD URL LAMBDA FUNCTION
@@ -255,6 +296,47 @@ Resources:
 # These are the URLs and names you need to
 # configure the frontend
 # ============================================
+
+  Pdf2WordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/functions/pdf2word/
+      Handler: index.handler
+      Timeout: 60
+      MemorySize: 1024
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PdfireBucket
+        - S3WritePolicy:
+            BucketName: !Ref PdfireBucket
+      Events:
+        Pdf2WordApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PdfireApi
+            Path: /pdf2word
+            Method: POST
+
+  Word2PdfFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/functions/word2pdf/
+      Handler: index.handler
+      Timeout: 60
+      MemorySize: 1024
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PdfireBucket
+        - S3WritePolicy:
+            BucketName: !Ref PdfireBucket
+      Events:
+        Word2PdfApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PdfireApi
+            Path: /word2pdf
+            Method: POST
+
 Outputs:
   ApiUrl:
     Description: API Gateway endpoint URL

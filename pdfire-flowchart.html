@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDFire — Project Flowchart</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #2a2a3a;
+    --green: #00e87a;
+    --red: #ff3d5a;
+    --orange: #ff6b00;
+    --blue: #4d9fff;
+    --purple: #a855f7;
+    --yellow: #ffd60a;
+    --text: #f0f0f5;
+    --muted: #666680;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 48px 24px;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(255,107,0,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 100%, rgba(77,159,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,107,0,0.1);
+    border: 1px solid rgba(255,107,0,0.3);
+    color: var(--orange);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .header h1 span {
+    background: linear-gradient(135deg, var(--orange), var(--red));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header p {
+    color: var(--muted);
+    font-size: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 56px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  /* PHASE */
+  .phase {
+    margin-bottom: 48px;
+  }
+
+  .phase-label {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .phase-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+  }
+
+  .phase-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .phase-date {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: auto;
+  }
+
+  /* FLOW ROW */
+  .flow-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .flow-item:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -18px;
+    top: 22px;
+    color: var(--border);
+    font-size: 1.2rem;
+    z-index: 2;
+  }
+
+  .flow-card {
+    width: 160px;
+    background: var(--card);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+    position: relative;
+    transition: transform 0.2s;
+  }
+
+  .flow-card:hover { transform: translateY(-2px); }
+
+  .flow-card.success { border-color: rgba(0,232,122,0.3); background: rgba(0,232,122,0.05); }
+  .flow-card.fail { border-color: rgba(255,61,90,0.3); background: rgba(255,61,90,0.05); }
+  .flow-card.fixed { border-color: rgba(255,214,10,0.3); background: rgba(255,214,10,0.04); }
+  .flow-card.pending { border-color: rgba(77,159,255,0.3); background: rgba(77,159,255,0.05); }
+
+  .card-icon { font-size: 1.5rem; margin-bottom: 8px; display: block; }
+
+  .card-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  .card-status {
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 100px;
+    display: inline-block;
+  }
+
+  .status-success { background: rgba(0,232,122,0.15); color: var(--green); }
+  .status-fail { background: rgba(255,61,90,0.15); color: var(--red); }
+  .status-fixed { background: rgba(255,214,10,0.15); color: var(--yellow); }
+  .status-pending { background: rgba(77,159,255,0.15); color: var(--blue); }
+
+  /* ISSUE CARDS */
+  .issues-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .issue-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .issue-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .issue-card.resolved::before { background: linear-gradient(90deg, var(--green), transparent); border-color: rgba(0,232,122,0.2); }
+  .issue-card.resolved { border-color: rgba(0,232,122,0.2); }
+  .issue-card.blocked::before { background: linear-gradient(90deg, var(--blue), transparent); }
+  .issue-card.blocked { border-color: rgba(77,159,255,0.2); }
+
+  .issue-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .issue-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .issue-num.resolved { background: rgba(0,232,122,0.15); color: var(--green); }
+  .issue-num.blocked { background: rgba(77,159,255,0.15); color: var(--blue); }
+
+  .issue-title { font-size: 0.9rem; font-weight: 700; line-height: 1.3; }
+
+  .issue-error {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--red);
+    background: rgba(255,61,90,0.08);
+    border: 1px solid rgba(255,61,90,0.15);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .issue-fix {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .issue-fix strong { color: var(--text); }
+
+  .issue-outcome {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+
+  .outcome-resolved { background: rgba(0,232,122,0.1); color: var(--green); }
+  .outcome-pending { background: rgba(77,159,255,0.1); color: var(--blue); }
+
+  /* CONNECTOR */
+  .connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 0;
+    color: var(--border);
+    font-size: 1.4rem;
+  }
+
+  /* TOOLS GRID */
+  .tools-showcase {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .tool-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .tool-pill.working { border-color: rgba(0,232,122,0.3); color: var(--green); }
+  .tool-pill.added { border-color: rgba(255,107,0,0.3); color: var(--orange); }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* TIMELINE SPINE */
+  .timeline {
+    position: relative;
+    padding-left: 32px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--orange), var(--blue));
+    border-radius: 2px;
+  }
+
+  .tl-item {
+    position: relative;
+    margin-bottom: 32px;
+  }
+
+  .tl-dot {
+    position: absolute;
+    left: -28px;
+    top: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+
+  .tl-dot.green { background: var(--green); box-shadow: 0 0 10px rgba(0,232,122,0.5); }
+  .tl-dot.red { background: var(--red); box-shadow: 0 0 10px rgba(255,61,90,0.5); }
+  .tl-dot.yellow { background: var(--yellow); box-shadow: 0 0 10px rgba(255,214,10,0.4); }
+  .tl-dot.blue { background: var(--blue); box-shadow: 0 0 10px rgba(77,159,255,0.4); }
+
+  .tl-date {
+    font-size: 0.68rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .tl-content {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .tl-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .tl-desc {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 100px;
+    margin-top: 6px;
+    margin-right: 4px;
+  }
+
+  .tag-green { background: rgba(0,232,122,0.1); color: var(--green); }
+  .tag-red { background: rgba(255,61,90,0.1); color: var(--red); }
+  .tag-yellow { background: rgba(255,214,10,0.1); color: var(--yellow); }
+  .tag-blue { background: rgba(77,159,255,0.1); color: var(--blue); }
+  .tag-orange { background: rgba(255,107,0,0.1); color: var(--orange); }
+
+  /* SUMMARY ROW */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 48px;
+    margin-bottom: 48px;
+  }
+
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .summary-num {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .summary-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @media (max-width: 700px) {
+    .tools-showcase { grid-template-columns: repeat(2, 1fr); }
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .flow-row { gap: 8px; }
+    .flow-card { width: 130px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-badge">🔥 Project Flowchart</div>
+    <h1>Building <span>PDFire</span></h1>
+    <p>Feb 23 → Mar 4, 2026 &nbsp;·&nbsp; 10 days &nbsp;·&nbsp; 8 tools &nbsp;·&nbsp; 7 bugs fixed</p>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Worked first time</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Failed / Bug encountered</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Fixed after debugging</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Pending / In progress</div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="summary-card">
+      <div class="summary-num" style="color:var(--orange)">10</div>
+      <div class="summary-label">days to build</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-num" style="color:var(--green)">8</div>
+      <div class="summary-label">tools shipped</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-num" style="color:var(--red)">7</div>
+      <div class="summary-label">bugs encountered</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-num" style="color:var(--yellow)">6</div>
+      <div class="summary-label">bugs fixed</div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="section-title">Full Project Timeline</div>
+  <div class="timeline">
+
+    <div class="tl-item">
+      <div class="tl-dot green"></div>
+      <div class="tl-date">Feb 23, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">🚀 Project Kickoff — Architecture Design</div>
+        <div class="tl-desc">Decided on a fully serverless stack: S3 + Lambda + API Gateway. Chose AWS SAM for infrastructure-as-code. Planned the pre-signed URL upload flow to bypass Lambda's 6MB request limit.</div>
+        <span class="tag tag-green">✓ Architecture decided</span>
+        <span class="tag tag-green">✓ SAM chosen</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot green"></div>
+      <div class="tl-date">Feb 23 – 24, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">🏗️ Backend Infrastructure — S3, API Gateway, Lambda</div>
+        <div class="tl-desc">Wrote template.yaml defining the S3 bucket (with CORS + lifecycle rules), API Gateway, and the first 4 Lambda functions: merge, split, compress, rotate. First successful <code style="color:var(--orange);font-family:JetBrains Mono,monospace">sam deploy</code>.</div>
+        <span class="tag tag-green">✓ S3 bucket created</span>
+        <span class="tag tag-green">✓ API Gateway live</span>
+        <span class="tag tag-green">✓ 4 Lambda functions deployed</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot green"></div>
+      <div class="tl-date">Feb 24 – 26, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">🎨 Frontend — Static HTML/CSS/JS App</div>
+        <div class="tl-desc">Built the entire frontend as a single index.html with no frameworks. Implemented drag-and-drop, file list, progress animations, and tool routing. Hosted on S3 static website. Deployed to pdfire-tools bucket.</div>
+        <span class="tag tag-green">✓ Frontend live on S3</span>
+        <span class="tag tag-green">✓ Merge, Split, Compress, Rotate working</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">Feb 26, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">🐛 Issue #1 — JPG↔PDF Routes Never Created</div>
+        <div class="tl-desc">Tested JPG to PDF and PDF to JPG — both returned NetworkError. Curl-tested the API and got <code style="color:var(--red);font-family:JetBrains Mono,monospace">{"message":"Not Found"}</code>. Checked API Gateway routes — /jpg2pdf and /pdf2jpg were completely missing.</div>
+        <span class="tag tag-red">✗ Routes missing from template.yaml</span>
+        <span class="tag tag-yellow">→ Added function blocks + redeployed</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">Feb 26, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">🐛 Issue #2 — Wrong Code in jpg2pdf Folder</div>
+        <div class="tl-desc">After deploying, CloudWatch showed: <code style="color:var(--red);font-family:JetBrains Mono,monospace">index.handler is undefined or not exported</code> and <code style="color:var(--red);font-family:JetBrains Mono,monospace">INFO: altschool assignment, question 2</code>. The folder contained old unrelated assignment code.</div>
+        <span class="tag tag-red">✗ Old code deployed instead of new function</span>
+        <span class="tag tag-yellow">→ Overwrote file with cat > and redeployed</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">Feb 26 – 28, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">🐛 Issue #3 — MIME Type Bug (Drag & Drop Broken)</div>
+        <div class="tl-desc">JPG to PDF still failed after routes were fixed. Root cause: <code style="color:var(--red);font-family:JetBrains Mono,monospace">file.type</code> returns empty string on drag-and-drop in browsers. The fallback <code style="color:var(--red);font-family:JetBrains Mono,monospace">|| 'application/pdf'</code> meant every dragged JPG was sent to S3 as a PDF, crashing the Lambda.</div>
+        <span class="tag tag-red">✗ file.type empty on drag-and-drop</span>
+        <span class="tag tag-yellow">→ Built getMimeType() using file extension as fallback</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot green"></div>
+      <div class="tl-date">Feb 28 – Mar 1, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">✅ PDF to Word + Word to PDF — New Features Added</div>
+        <div class="tl-desc">Built two new Lambda functions: pdf2word (using pdf-parse + docx) and word2pdf (using mammoth + pdf-lib). Created function folders, package.json files, ran npm install, and added to template.yaml.</div>
+        <span class="tag tag-green">✓ pdf2word function built</span>
+        <span class="tag tag-green">✓ word2pdf function built</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">Mar 1, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">🐛 Issue #4 — template.yaml Outputs Placement Bug</div>
+        <div class="tl-desc">Used <code style="color:var(--red);font-family:JetBrains Mono,monospace">cat >></code> to append new functions to template.yaml but they landed after the Outputs: block. CloudFormation threw: <code style="color:var(--red);font-family:JetBrains Mono,monospace">Template format error: Invalid outputs property: [Type, Properties]</code>.</div>
+        <span class="tag tag-red">✗ Functions appended outside Resources block</span>
+        <span class="tag tag-yellow">→ Reconstructed template using head -n + clean rewrite</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">Mar 1, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">🐛 Issue #5 — Word to PDF Unicode Encoding Error</div>
+        <div class="tl-desc">Word to PDF returned Processing Failed. CloudWatch showed: <code style="color:var(--red);font-family:JetBrains Mono,monospace">WinAnsi cannot encode "" (0xf4de)</code>. Standard PDF fonts only support WinAnsi — smart quotes, em dashes, and special characters in Word docs caused crashes.</div>
+        <span class="tag tag-red">✗ Special Unicode chars unsupported by pdf-lib fonts</span>
+        <span class="tag tag-yellow">→ Added sanitizeText() to strip/replace special chars before render</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot green"></div>
+      <div class="tl-date">Mar 1 – 3, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">📱 Responsive Design — All Screen Sizes</div>
+        <div class="tl-desc">Added comprehensive CSS media queries for tablet (≤900px), mobile (≤600px), and small mobile (≤380px). Fixed stacking layouts, touch-friendly buttons, full-width download buttons, and collapsing footer.</div>
+        <span class="tag tag-green">✓ Fully responsive across all devices</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">Mar 3, 2026</div>
+      <div class="tl-content">
+        <div class="tl-title">🐛 Issue #6 — IAM Policy Limit Hit</div>
+        <div class="tl-desc">Tried to add CloudFrontFullAccess to enable HTTPS. Got: <code style="color:var(--red);font-family:JetBrains Mono,monospace">LimitExceeded: Cannot exceed quota for PoliciesPerUser: 10</code>. Had 10 policies attached including AmazonEC2FullAccess which wasn't needed.</div>
+        <span class="tag tag-red">✗ AWS 10-policy limit reached</span>
+        <span class="tag tag-yellow">→ Detached unused EC2 policy, attached CloudFront</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot blue"></div>
+      <div class="tl-date">Mar 4, 2026 — Ongoing</div>
+      <div class="tl-content">
+        <div class="tl-title">🔒 Issue #7 — CloudFront Account Verification Pending</div>
+        <div class="tl-desc">After fixing IAM policy limit, CloudFront creation failed: <code style="color:var(--red);font-family:JetBrains Mono,monospace">AccessDenied: Your account must be verified before you can add new CloudFront resources</code>. AWS Support case opened. Site currently runs on HTTP.</div>
+        <span class="tag tag-blue">⏳ AWS Support case opened</span>
+        <span class="tag tag-blue">⏳ HTTPS pending verification</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TOOLS SHIPPED -->
+  <div class="section-title" style="margin-top:48px">8 Tools Shipped</div>
+  <div class="tools-showcase">
+    <div class="tool-pill working">📄 Merge PDF</div>
+    <div class="tool-pill working">✂️ Split PDF</div>
+    <div class="tool-pill working">🗜️ Compress PDF</div>
+    <div class="tool-pill working">🔄 Rotate PDF</div>
+    <div class="tool-pill added">🖼️ PDF to JPG</div>
+    <div class="tool-pill added">📎 JPG to PDF</div>
+    <div class="tool-pill added">📝 PDF to Word</div>
+    <div class="tool-pill added">📋 Word to PDF</div>
+  </div>
+  <div style="display:flex;gap:16px;margin-bottom:48px">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Original 4 tools</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Added later</div>
+  </div>
+
+  <!-- ARCHITECTURE FLOW -->
+  <div class="section-title">Architecture Flow</div>
+  <div class="flow-row" style="gap:36px;justify-content:center;margin-bottom:48px;flex-wrap:wrap">
+    <div class="flow-item">
+      <div class="flow-card success">
+        <span class="card-icon">🌐</span>
+        <div class="card-title">Browser / Frontend</div>
+        <div class="card-status status-success">S3 Static Host</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-card success">
+        <span class="card-icon">🔑</span>
+        <div class="card-title">Get Pre-signed URL</div>
+        <div class="card-status status-success">Lambda</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-card success">
+        <span class="card-icon">📤</span>
+        <div class="card-title">Upload Direct to S3</div>
+        <div class="card-status status-success">Bypasses Lambda</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-card success">
+        <span class="card-icon">⚡</span>
+        <div class="card-title">Process File</div>
+        <div class="card-status status-success">Lambda + pdf-lib</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-card success">
+        <span class="card-icon">⬇️</span>
+        <div class="card-title">Download Result</div>
+        <div class="card-status status-success">Signed URL</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ISSUES SUMMARY -->
+  <div class="section-title">All Issues — Root Causes & Fixes</div>
+  <div class="issues-grid">
+
+    <div class="issue-card resolved">
+      <div class="issue-header">
+        <div class="issue-num resolved">#1</div>
+        <div class="issue-title">JPG↔PDF Routes Never Created</div>
+      </div>
+      <div class="issue-error">curl → {"message":"Not Found"}<br>API Gateway had no /jpg2pdf or /pdf2jpg routes</div>
+      <div class="issue-fix"><strong>Fix:</strong> Added Jpg2PdfFunction and Pdf2JpgFunction blocks to template.yaml with correct HttpApi events, then redeployed.</div>
+      <div class="issue-outcome outcome-resolved">✓ Resolved</div>
+    </div>
+
+    <div class="issue-card resolved">
+      <div class="issue-header">
+        <div class="issue-num resolved">#2</div>
+        <div class="issue-title">Wrong Code in jpg2pdf Folder</div>
+      </div>
+      <div class="issue-error">Runtime.HandlerNotFound: index.handler undefined<br>LOG: "altschool assignment, question 2"</div>
+      <div class="issue-fix"><strong>Fix:</strong> The folder had old assignment code. Overwrote with <code>cat > index.js</code>, pasted correct handler, ran npm install, redeployed.</div>
+      <div class="issue-outcome outcome-resolved">✓ Resolved</div>
+    </div>
+
+    <div class="issue-card resolved">
+      <div class="issue-header">
+        <div class="issue-num resolved">#3</div>
+        <div class="issue-title">MIME Type Bug — Drag & Drop Broken</div>
+      </div>
+      <div class="issue-error">file.type = "" on drag-and-drop<br>Fallback sent every JPG as 'application/pdf'</div>
+      <div class="issue-fix"><strong>Fix:</strong> Built getMimeType() helper that reads the file extension when file.type is empty or generic. Applied to both the Lambda request and the S3 PUT header.</div>
+      <div class="issue-outcome outcome-resolved">✓ Resolved</div>
+    </div>
+
+    <div class="issue-card resolved">
+      <div class="issue-header">
+        <div class="issue-num resolved">#4</div>
+        <div class="issue-title">template.yaml Outputs Placement Bug</div>
+      </div>
+      <div class="issue-error">Template format error: Invalid outputs property<br>Functions appended after Outputs: block</div>
+      <div class="issue-fix"><strong>Fix:</strong> Used <code>head -n 298</code> to cut the file cleanly before Outputs, appended functions in the correct Resources block, re-added Outputs section at the end.</div>
+      <div class="issue-outcome outcome-resolved">✓ Resolved</div>
+    </div>
+
+    <div class="issue-card resolved">
+      <div class="issue-header">
+        <div class="issue-num resolved">#5</div>
+        <div class="issue-title">Word to PDF Unicode Encoding Error</div>
+      </div>
+      <div class="issue-error">WinAnsi cannot encode "" (0xf4de)<br>Standard fonts can't handle smart quotes/em dashes</div>
+      <div class="issue-fix"><strong>Fix:</strong> Added sanitizeText() to replace smart quotes → straight quotes, em dashes → --, ellipsis → ..., and any remaining non-latin chars → ?. Wrapped drawText in try/catch.</div>
+      <div class="issue-outcome outcome-resolved">✓ Resolved</div>
+    </div>
+
+    <div class="issue-card resolved">
+      <div class="issue-header">
+        <div class="issue-num resolved">#6</div>
+        <div class="issue-title">IAM Policy Limit (10 max per user)</div>
+      </div>
+      <div class="issue-error">LimitExceeded: Cannot exceed quota for PoliciesPerUser: 10</div>
+      <div class="issue-fix"><strong>Fix:</strong> Audited existing policies. Found AmazonEC2FullAccess and AmazonVPCFullAccess were attached with no reason. Detached EC2 policy to free a slot, then attached CloudFrontFullAccess.</div>
+      <div class="issue-outcome outcome-resolved">✓ Resolved</div>
+    </div>
+
+    <div class="issue-card blocked">
+      <div class="issue-header">
+        <div class="issue-num blocked">#7</div>
+        <div class="issue-title">CloudFront Account Verification Block</div>
+      </div>
+      <div class="issue-error">AccessDenied: Your account must be verified before you can add new CloudFront resources</div>
+      <div class="issue-fix"><strong>Status:</strong> AWS Support case opened requesting CloudFront access. This is a standard one-time verification for newer AWS accounts. Site runs on HTTP in the meantime.</div>
+      <div class="issue-outcome outcome-pending">⏳ Pending AWS verification</div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;padding:32px 0;border-top:1px solid var(--border);margin-top:16px">
+    <div style="font-size:0.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace">
+      PDFire &nbsp;·&nbsp; Built Feb 23 – Mar 4, 2026 &nbsp;·&nbsp; 
+      <a href="http://pdfire-tools.s3-website-us-east-1.amazonaws.com" style="color:var(--orange);text-decoration:none">Live Site ↗</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
